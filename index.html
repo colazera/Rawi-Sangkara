@@ -150,7 +150,7 @@
             <h5 class="font-bold text-sm text-gold" id="toast-title">Pemberitahuan</h5>
             <p class="text-xs text-gray-300" id="toast-message">Pesan berhasil terkirim!</p>
         </div>
-        <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-white">
+        <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-white" aria-label="Close Toast">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
@@ -187,7 +187,7 @@
             <!-- Controls (Language Switcher & CTA) -->
             <div class="hidden lg:flex items-center gap-4">
                 <!-- Language Toggle -->
-                <button onclick="toggleLanguage()" class="border border-white/20 hover:border-gold px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-2 bg-white/5">
+                <button onclick="toggleLanguage()" class="border border-white/20 hover:border-gold px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-2 bg-white/5" aria-label="Toggle Language">
                     <i class="fa-solid fa-globe text-gold"></i>
                     <span id="lang-indicator">ID / EN</span>
                 </button>
@@ -200,7 +200,7 @@
 
             <!-- Mobile Menu Toggle Button -->
             <div class="flex items-center gap-3 xl:hidden">
-                <button onclick="toggleLanguage()" class="border border-white/20 px-2.5 py-1 rounded-full text-xs font-bold text-gold bg-white/5">
+                <button onclick="toggleLanguage()" class="border border-white/20 px-2.5 py-1 rounded-full text-xs font-bold text-gold bg-white/5" aria-label="Toggle Language Mobile">
                     <span id="lang-indicator-mobile">EN</span>
                 </button>
                 <button class="text-2xl text-gold focus:outline-none p-2" onclick="toggleMenu()" aria-label="Toggle Menu">
@@ -663,12 +663,12 @@
                         <div class="mt-6 space-y-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-gray-400" data-id="calc-res-fcl">Kontainer FCL 20ft:</span>
-                                <span class="text-xl font-extrabold text-white font-serif" id="res-fcl">1.0 Kontainer</span>
+                                <span class="text-xl font-extrabold text-white font-serif" id="res-fcl">1.0 Kontainer (FCL 20ft)</span>
                             </div>
 
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-gray-400" data-id="calc-res-bags">Karung GrainPro (60kg):</span>
-                                <span class="text-xl font-extrabold text-gold font-serif" id="res-bags">320 Karung</span>
+                                <span class="text-xl font-extrabold text-gold font-serif" id="res-bags">320 Karung GrainPro</span>
                             </div>
 
                             <div class="flex justify-between items-center">
@@ -903,7 +903,7 @@
     <!-- Interactive Quote Request Modal -->
     <div id="quoteModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="bg-dark text-white rounded-3xl max-w-lg w-full p-8 border border-gold/40 relative shadow-2xl">
-            <button onclick="closeQuoteModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
+            <button onclick="closeQuoteModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl" aria-label="Close Modal">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
@@ -925,7 +925,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold uppercase text-gold mb-1">Estimasi Kebutuhan (Metric Ton)</label>
-                    <input type="number" id="modal-ton" value="19.2" min="1" class="w-full bg-dark-card border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold focus:outline-none">
+                    <input type="number" id="modal-ton" value="19.2" min="1" step="0.1" class="w-full bg-dark-card border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gold focus:outline-none">
                 </div>
                 <button type="submit" class="w-full bg-gold hover:bg-gold-light text-dark font-extrabold py-3.5 rounded-xl transition-all uppercase text-xs tracking-wider mt-4">
                     Kirimkan Formulir Sampel
@@ -1115,7 +1115,7 @@
         function toggleLanguage() {
             currentLang = currentLang === 'id' ? 'en' : 'id';
             document.getElementById('lang-indicator').innerText = currentLang.toUpperCase() + ' / ' + (currentLang === 'id' ? 'EN' : 'ID');
-            document.getElementById('lang-indicator-mobile').innerText = currentLang.toUpperCase();
+            document.getElementById('lang-indicator-mobile').innerText = currentLang === 'id' ? 'EN' : 'ID';
 
             // Update all elements with data-id
             const elements = document.querySelectorAll('[data-id]');
@@ -1125,6 +1125,9 @@
                     el.innerText = translations[currentLang][key];
                 }
             });
+
+            // Re-calculate logistics to adjust text unit suffix
+            calculateLogistics();
 
             showToast(
                 currentLang === 'id' ? 'Bahasa Diubah' : 'Language Switched',
@@ -1165,7 +1168,7 @@
                 threshold: 0.12
             };
 
-            const observer = new IntersectionObserver((entries, observer) => {
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
@@ -1189,8 +1192,11 @@
             const containers = (volumeInput / containerCapacity).toFixed(1);
             const totalBags = Math.ceil(volumeInput / bagWeight);
 
-            document.getElementById('res-fcl').innerText = `${containers} Kontainer (FCL 20ft)`;
-            document.getElementById('res-bags').innerText = `${totalBags.toLocaleString()} Karung GrainPro`;
+            const containerSuffix = currentLang === 'id' ? 'Kontainer (FCL 20ft)' : 'Containers (FCL 20ft)';
+            const bagSuffix = currentLang === 'id' ? 'Karung GrainPro' : 'GrainPro Bags';
+
+            document.getElementById('res-fcl').innerText = `${containers} ${containerSuffix}`;
+            document.getElementById('res-bags').innerText = `${totalBags.toLocaleString()} ${bagSuffix}`;
         }
 
         // WhatsApp Quote Dispatcher
